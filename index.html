@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reporte de Incidencias EPP – PA PERU SAC</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#E7E8EA;
+  --detail:#BBBCBC;
+  --blue:#307FE2;
+  --red:#CE0058;
+  --dark:#1A2332;
+  --text:#2C3E50;
+  --muted:#6B7280;
+  --border:#D1D5DB;
+  --white:#FFFFFF;
+  --success:#10B981;
+  --input-bg:#F9FAFB;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+
+/* HEADER */
+.header{background:var(--dark);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--blue)}
+.logo-box{width:48px;height:48px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:white;line-height:1.2;text-align:center;flex-shrink:0}
+.header-left{display:flex;align-items:center;gap:12px}
+.logo-name{color:white;font-size:13px;font-weight:600}
+.logo-sub{color:var(--detail);font-size:10px;margin-top:1px}
+.header-right{text-align:right}
+.header-title{color:white;font-size:13px;font-weight:600}
+.header-sub{color:var(--detail);font-size:11px;margin-top:2px}
+
+/* STEPPER */
+.stepper{background:white;border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center}
+.step{display:flex;align-items:center;gap:7px;opacity:.4;transition:opacity .2s;cursor:default}
+.step.active,.step.done{opacity:1}
+.step-circle{width:26px;height:26px;border-radius:50%;background:var(--detail);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0}
+.step.active .step-circle{background:var(--blue)}
+.step.done .step-circle{background:var(--success)}
+.step-label{font-size:11px;font-weight:500;color:var(--muted);white-space:nowrap}
+.step.active .step-label{color:var(--blue);font-weight:600}
+.step-line{flex:1;height:1px;background:var(--border);min-width:10px;margin:0 4px}
+
+/* META BAR */
+.meta-bar{background:#F0F4F8;border-bottom:1px solid var(--border);padding:7px 24px;display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.meta-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
+.meta-badge{background:var(--blue);color:white;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.meta-badge.red{background:var(--red)}
+
+/* PROGRESS */
+.progress-bar{height:3px;background:var(--border);overflow:hidden}
+.progress-fill{height:100%;background:var(--blue);transition:width .4s}
+
+/* MAIN */
+.main{padding:20px 24px;max-width:860px;margin:0 auto}
+.screen{display:none}
+.screen.active{display:block}
+
+/* CARDS */
+.card{background:white;border-radius:12px;border:1px solid var(--border);padding:22px;margin-bottom:14px}
+.card-title{font-size:14px;font-weight:600;color:var(--dark);margin-bottom:3px;display:flex;align-items:center;gap:7px}
+.card-sub{font-size:12px;color:var(--muted);margin-bottom:18px}
+.divider{height:1px;background:var(--border);margin:14px 0}
+
+/* ROL CARDS */
+.rol-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px}
+.rol-card{border:2px solid var(--border);border-radius:12px;padding:22px 18px;cursor:pointer;transition:all .2s;background:white;text-align:center;position:relative}
+.rol-card:hover{border-color:var(--blue);background:#F0F7FF;transform:translateY(-1px)}
+.rol-card.selected{border-color:var(--blue);background:#EBF4FF;box-shadow:0 0 0 3px rgba(48,127,226,.15)}
+.rol-icon{font-size:36px;margin-bottom:10px;display:block}
+.rol-name{font-size:15px;font-weight:700;color:var(--dark);margin-bottom:5px}
+.rol-desc{font-size:12px;color:var(--muted);line-height:1.5}
+.rol-check{position:absolute;top:10px;right:10px;width:20px;height:20px;border-radius:50%;background:var(--blue);color:white;display:none;align-items:center;justify-content:center;font-size:11px}
+.rol-card.selected .rol-check{display:flex}
+
+/* FORMS */
+.form-row{display:grid;gap:11px;margin-bottom:11px}
+.form-row.col2{grid-template-columns:1fr 1fr}
+.form-row.col3{grid-template-columns:1fr 1fr 1fr}
+.form-row.col1{grid-template-columns:1fr}
+.form-group{display:flex;flex-direction:column;gap:4px}
+label{font-size:12px;font-weight:600;color:var(--dark)}
+.req{color:var(--red)}
+.hint{font-size:11px;color:var(--muted);margin-top:1px;font-style:italic}
+input,select,textarea{border:1px solid var(--border);border-radius:7px;padding:8px 11px;font-size:13px;color:var(--text);background:var(--input-bg);outline:none;transition:border-color .15s;font-family:inherit;width:100%}
+input:focus,textarea:focus,select:focus{border-color:var(--blue);background:white;box-shadow:0 0 0 3px rgba(48,127,226,.1)}
+input.filled{background:#F0FBF4;border-color:var(--success);color:#065F46}
+textarea{resize:vertical;min-height:88px;line-height:1.6}
+input[type=number]{-moz-appearance:textfield}
+
+/* AUTOCOMPLETE */
+.ac-wrap{position:relative}
+.dropdown{position:absolute;top:100%;left:0;right:0;background:white;border:1px solid var(--blue);border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,.1);z-index:200;max-height:170px;overflow-y:auto;margin-top:2px;display:none}
+.dd-item{padding:9px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid #F3F4F6;transition:background .1s}
+.dd-item:hover{background:#EBF4FF}
+.dd-item:last-child{border-bottom:none}
+.dd-item .hl{color:var(--blue);font-weight:700}
+.dd-empty{padding:9px 12px;font-size:12px;color:var(--muted);font-style:italic}
+
+/* TOGGLE */
+.toggle-wrap{background:#F0F7FF;border:1px solid var(--border);border-radius:9px;padding:12px 15px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.toggle-text .tl{font-size:13px;font-weight:600;color:var(--dark)}
+.toggle-text .ts{font-size:11px;color:var(--muted);margin-top:1px}
+.toggle{position:relative;width:42px;height:22px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.tslider{position:absolute;cursor:pointer;inset:0;background:var(--detail);border-radius:22px;transition:.3s}
+.tslider:before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s}
+.toggle input:checked+.tslider{background:var(--blue)}
+.toggle input:checked+.tslider:before{transform:translateX(20px)}
+
+/* EPP ROWS */
+.epp-row{background:#FAFAFA;border:1px solid var(--border);border-radius:9px;padding:14px;margin-bottom:10px}
+.epp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.epp-badge{padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.epp-badge.req{background:var(--red);color:white}
+.epp-badge.opt{background:#EBF4FF;color:#0C447C}
+.btn-remove{background:none;border:1px solid #FECACA;color:#DC2626;border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer}
+.btn-remove:hover{background:#FEF2F2}
+
+/* PHOTOS */
+.photo-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:10px}
+.photo-slot{aspect-ratio:1;border:2px dashed var(--border);border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;font-size:11px;color:var(--muted);background:#FAFAFA;overflow:hidden;position:relative}
+.photo-slot:hover{border-color:var(--blue);color:var(--blue);background:#EBF4FF}
+.photo-slot.filled{border:2px solid var(--success);cursor:default}
+.photo-slot img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.photo-wm{position:absolute;top:3px;left:3px;background:rgba(0,0,0,.6);color:white;font-size:9px;padding:2px 4px;border-radius:3px;line-height:1.3;max-width:92%;word-break:break-word;z-index:2;pointer-events:none}
+.slot-del{position:absolute;top:3px;right:3px;background:rgba(220,38,38,.85);color:white;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:3}
+.photo-slot.filled:hover .slot-del{display:flex}
+
+/* BUTTONS */
+.btn{padding:9px 22px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--blue);color:white}
+.btn-primary:hover{background:#1E6BC4}
+.btn-primary:disabled{background:var(--detail);cursor:not-allowed}
+.btn-secondary{background:white;color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{background:#F9FAFB}
+.btn-add{background:#F0FBF4;color:var(--success);border:1px solid var(--success);padding:7px 14px;font-size:12px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-weight:600;transition:all .15s}
+.btn-add:hover{background:#D1FAE5}
+.btn-add:disabled{opacity:.4;cursor:not-allowed}
+.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
+
+/* ALERTS */
+.alert{border-radius:7px;padding:9px 13px;font-size:12px;margin-bottom:11px;display:flex;align-items:flex-start;gap:7px;line-height:1.5}
+.alert-info{background:#EBF4FF;color:#1E6BC4;border-left:3px solid var(--blue)}
+.alert-success{background:#D1FAE5;color:#065F46;border-left:3px solid var(--success)}
+.alert-warn{background:#FEF3C7;color:#92400E;border-left:3px solid #F59E0B}
+.alert-error{background:#FEE2E2;color:#991B1B;border-left:3px solid #DC2626}
+
+/* SUMMARY */
+.summary-box{background:#F8F9FF;border:1px solid #C7D7FF;border-radius:9px;padding:14px;margin-bottom:14px}
+.summary-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #E5EAFF;font-size:12px}
+.summary-row:last-child{border-bottom:none}
+.summary-row span:first-child{color:var(--muted)}
+.summary-row span:last-child{font-weight:600;color:var(--dark)}
+
+/* LOADING OVERLAY */
+.loading-overlay{position:fixed;inset:0;background:rgba(26,35,50,.6);display:none;align-items:center;justify-content:center;z-index:999}
+.loading-overlay.show{display:flex}
+.loading-box{background:white;border-radius:12px;padding:28px 36px;text-align:center;min-width:240px}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:13px;color:var(--muted)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--dark);color:white;padding:12px 18px;border-radius:10px;font-size:13px;z-index:1000;display:none;align-items:center;gap:8px;max-width:360px;line-height:1.4}
+.toast.show{display:flex}
+.toast.success{background:#065F46;border-left:4px solid var(--success)}
+.toast.error{background:#991B1B;border-left:4px solid #DC2626}
+
+input[type=file]{display:none}
+
+@media(max-width:600px){
+  .form-row.col2,.form-row.col3{grid-template-columns:1fr}
+  .rol-grid{grid-template-columns:1fr}
+  .photo-grid{grid-template-columns:repeat(4,1fr)}
+  .header{padding:10px 14px}
+  .main{padding:14px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loading-text">Guardando en SharePoint...</div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo-box">PA<br>SAC</div>
+    <div>
+      <div class="logo-name">PA PERU SAC</div>
+      <div class="logo-sub">Logística · Sistema EPP</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="header-title">Reporte de Incidencias de EPP – Dotación</div>
+    <div class="header-sub">Logística – PA PERU SAC</div>
+  </div>
+</div>
+
+<!-- STEPPER -->
+<div class="stepper">
+  <div class="step active" id="step-1"><div class="step-circle" id="sc-1">1</div><div class="step-label">Identificación</div></div>
+  <div class="step-line"></div>
+  <div class="step" id="step-2"><div class="step-circle" id="sc-2">2</div><div class="step-label">Datos del reporte</div></div>
+  <div class="step-line"></div>
+  <div class="step" id="step-3"><div class="step-circle" id="sc-3">3</div><div class="step-label">Descripción</div></div>
+  <div class="step-line"></div>
+  <div class="step" id="step-4"><div class="step-circle" id="sc-4">4</div><div class="step-label">Artículos y fotos</div></div>
+</div>
+
+<!-- META BAR -->
+<div class="meta-bar">
+  <div class="meta-item">📋 Correlativo: <span class="meta-badge" id="meta-corr">—</span></div>
+  <div class="meta-item">📅 Fecha: <span class="meta-badge red" id="meta-fecha">—</span></div>
+  <div class="meta-item" id="meta-rol-wrap" style="display:none">👤 <span id="meta-rol">—</span></div>
+</div>
+
+<div class="progress-bar"><div class="progress-fill" id="prog" style="width:25%"></div></div>
+
+<div class="main">
+
+<!-- ══════════════ PANTALLA 1 ══════════════ -->
+<div class="screen active" id="s1">
+  <div class="card">
+    <div class="card-title">🎯 Módulo 1 – Registro de incidente</div>
+    <div class="card-sub">Selecciona tu rol para adaptar el formulario. Se generará un correlativo automático.</div>
+    <div class="rol-grid">
+      <div class="rol-card" id="rc-gestor" onclick="selRol('gestor')">
+        <div class="rol-check" id="chk-gestor">✓</div>
+        <span class="rol-icon">🗂️</span>
+        <div class="rol-name">Gestor de Materiales</div>
+        <div class="rol-desc">Personal de oficina que gestiona y registra incidencias desde sistemas internos</div>
+      </div>
+      <div class="rol-card" id="rc-operativo" onclick="selRol('operativo')">
+        <div class="rol-check" id="chk-operativo">✓</div>
+        <span class="rol-icon">🦺</span>
+        <div class="rol-name">Personal Operativo</div>
+        <div class="rol-desc">Trabajador de campo que reporta directamente desde el lugar del incidente</div>
+      </div>
+    </div>
+    <div class="alert alert-info" id="rol-hint" style="margin-top:14px">ℹ️ Selecciona un rol para continuar.</div>
+  </div>
+  <div class="nav-row">
+    <div></div>
+    <button class="btn btn-primary" onclick="next(1)">Continuar →</button>
+  </div>
+</div>
+
+<!-- ══════════════ PANTALLA 2 ══════════════ -->
+<div class="screen" id="s2">
+  <div class="card">
+    <div class="card-title">👤 Capa 1 – Datos de quien genera el reporte</div>
+    <div class="card-sub">Los datos se completan automáticamente al seleccionar el nombre.</div>
+    <div class="form-row col1">
+      <div class="form-group">
+        <label>Nombre del reportante <span class="req">*</span></label>
+        <div class="ac-wrap">
+          <input type="text" id="rep-nombre" placeholder="Escribe las primeras letras..." autocomplete="off" oninput="filterStaff(this.value,'rep')">
+          <div class="dropdown" id="rep-drop"></div>
+        </div>
+      </div>
+    </div>
+    <div class="form-row col3">
+      <div class="form-group"><label>Cargo</label><input type="text" id="rep-cargo" readonly class="filled" placeholder="—"></div>
+      <div class="form-group"><label>DNI</label><input type="text" id="rep-dni" readonly class="filled" placeholder="—"></div>
+      <div class="form-group"><label>Área</label><input type="text" id="rep-area" readonly class="filled" placeholder="—"></div>
+    </div>
+    <div class="divider"></div>
+    <div class="card-title" style="margin-bottom:4px">⚠️ Colaborador afectado / involucrado</div>
+    <div class="card-sub">Indica si el afectado es la misma persona que reporta.</div>
+    <div class="toggle-wrap">
+      <div class="toggle-text">
+        <div class="tl">El afectado es la misma persona que reporta</div>
+        <div class="ts">Activa para copiar los datos automáticamente</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="mismo-toggle" onchange="toggleMismo(this.checked)"><span class="tslider"></span></label>
+    </div>
+    <div id="afect-fields">
+      <div class="form-row col1">
+        <div class="form-group">
+          <label>Nombre del afectado <span class="req">*</span></label>
+          <div class="ac-wrap">
+            <input type="text" id="afect-nombre" placeholder="Escribe las primeras letras..." autocomplete="off" oninput="filterStaff(this.value,'afect')">
+            <div class="dropdown" id="afect-drop"></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-row col3">
+        <div class="form-group"><label>Cargo</label><input type="text" id="afect-cargo" readonly class="filled" placeholder="—"></div>
+        <div class="form-group"><label>DNI</label><input type="text" id="afect-dni" readonly class="filled" placeholder="—"></div>
+        <div class="form-group"><label>Área</label><input type="text" id="afect-area" readonly class="filled" placeholder="—"></div>
+      </div>
+    </div>
+  </div>
+  <div class="nav-row">
+    <button class="btn btn-secondary" onclick="prev(2)">← Atrás</button>
+    <button class="btn btn-primary" onclick="next(2)">Continuar →</button>
+  </div>
+</div>
+
+<!-- ══════════════ PANTALLA 3 ══════════════ -->
+<div class="screen" id="s3">
+  <div class="card">
+    <div class="card-title">📝 Capa 1 – Descripción detallada del evento</div>
+    <div class="card-sub">Describe con precisión el incidente ocurrido con el EPP.</div>
+    <div class="form-row col1">
+      <div class="form-group">
+        <label>Actividad que desarrollaba <span class="req">*</span></label>
+        <input type="text" id="actividad" placeholder="Ej: Instalación de andamios en nivel 3">
+        <div class="hint">Actividad que desarrollaba al momento del incidente</div>
+      </div>
+    </div>
+    <div class="form-row col1">
+      <div class="form-group">
+        <label>N° Ticket / Orden de trabajo / Referencia</label>
+        <input type="text" id="ticket" placeholder="Ej: OT-2025-0045 / TKT-887">
+      </div>
+    </div>
+    <div class="form-row col1">
+      <div class="form-group">
+        <label>Detalle del incidente <span class="req">*</span></label>
+        <textarea id="detalle" rows="5" placeholder="Describe con precisión lo ocurrido con el EPP..."></textarea>
+        <div class="hint">Detalle explícito y completo de lo sucedido con el EPP</div>
+      </div>
+    </div>
+  </div>
+  <div class="nav-row">
+    <button class="btn btn-secondary" onclick="prev(3)">← Atrás</button>
+    <button class="btn btn-primary" onclick="next(3)">Continuar →</button>
+  </div>
+</div>
+
+<!-- ══════════════ PANTALLA 4 ══════════════ -->
+<div class="screen" id="s4">
+  <!-- EPP -->
+  <div class="card">
+    <div class="card-title">🛡️ Capa 1 – Detalle de artículos afectados</div>
+    <div class="card-sub">Registra los EPP involucrados. El primero es obligatorio; puedes agregar hasta 5.</div>
+    <div id="epp-list"></div>
+    <button class="btn-add" id="btn-add-epp" onclick="addEpp()">+ Agregar otro EPP</button>
+  </div>
+
+  <!-- FOTOS -->
+  <div class="card">
+    <div class="card-title">📷 Capa 2 – Registro fotográfico</div>
+    <div class="card-sub">Sube o captura hasta 10 fotos. Se añadirá marca de agua automática.</div>
+    <div class="alert alert-info">ℹ️ Cada foto tendrá marca de agua con <strong>fecha/hora</strong> y <strong>dirección GPS</strong> obtenida automáticamente.</div>
+    <div class="photo-grid" id="photo-grid"></div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <button class="btn btn-secondary" style="font-size:12px;padding:7px 14px" onclick="document.getElementById('fi-galeria').click()">📁 Subir fotos</button>
+      <button class="btn btn-secondary" style="font-size:12px;padding:7px 14px" onclick="document.getElementById('fi-camara').click()">📷 Tomar foto</button>
+    </div>
+    <input type="file" id="fi-galeria" multiple accept="image/*" onchange="handleFiles(this.files)">
+    <input type="file" id="fi-camara" accept="image/*" capture="environment" onchange="handleFiles(this.files)">
+    <div style="margin-top:7px;font-size:11px;color:var(--muted)" id="photo-count">0 / 10 fotos</div>
+  </div>
+
+  <!-- RESUMEN + ENVÍO -->
+  <div class="card" style="background:#F8FFF9;border-color:#A7F3D0">
+    <div class="card-title" style="color:#065F46">✅ Resumen y envío a SharePoint</div>
+    <div class="card-sub">Verifica los datos antes de enviar. Se guardará en la lista Incidencias_EPP.</div>
+    <div class="summary-box" id="resumen"></div>
+    <div class="alert alert-warn" id="warn-envio" style="display:none">⚠️ <span id="warn-txt"></span></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+      <button class="btn btn-primary" id="btn-enviar" onclick="enviarFlujo1()">📤 Enviar a SharePoint</button>
+      <button class="btn btn-secondary" onclick="prev(4)">← Atrás</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+// ══════════════════════════════════════════
+// CONFIG — URL REAL DEL FLUJO 1
+// ══════════════════════════════════════════
+const FLUJO1_URL = 'https://default116804d86f394be9b150bb073c73c4.ac.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/c7b2f12482374dddb7c1a3768e203811/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=bHC0rSU72E5geQ8Rs6HJph2zOVrWHg4OMpRfAszSQZU';
+
+// ══════════════════════════════════════════
+// BASE DE DATOS HARDCODEADA (RRHH)
+// ══════════════════════════════════════════
+const DB_STAFF = [
+  {nombre:'Carlos Mendoza Torres',  cargo:'Supervisor de Logística',    dni:'45123678', area:'Logística'},
+  {nombre:'María Elena Quispe',     cargo:'Analista de Almacén',        dni:'72345901', area:'Almacén'},
+  {nombre:'Jorge Luis Paredes',     cargo:'Técnico de Campo',           dni:'30789456', area:'Operaciones'},
+  {nombre:'Ana Patricia Rojas',     cargo:'Coordinadora SSOMA',         dni:'61234789', area:'Seguridad'},
+  {nombre:'Luis Alberto Flores',    cargo:'Operario Especializado',     dni:'48901234', area:'Operaciones'},
+  {nombre:'Rosa Milagros Chávez',   cargo:'Asistente Administrativo',   dni:'73456012', area:'Administración'},
+  {nombre:'Pedro Antonio Sánchez',  cargo:'Jefe de Distribución',       dni:'25678345', area:'Distribución'},
+  {nombre:'Carla Vanessa Díaz',     cargo:'Técnica de Seguridad',       dni:'80123456', area:'Seguridad'},
+];
+
+// ══════════════════════════════════════════
+// BASE DE DATOS HARDCODEADA (EPP)
+// ══════════════════════════════════════════
+const DB_EPP = [
+  {nombre:'Casco de Seguridad MSA V-Gard',   codigo:'EPP-001', um:'Unidad', familia:'Protección Cabeza',       sub:'Cascos'},
+  {nombre:'Guantes Nitrilo Talla M',          codigo:'EPP-002', um:'Par',    familia:'Protección Manos',        sub:'Guantes'},
+  {nombre:'Lentes de Seguridad Claros',       codigo:'EPP-003', um:'Unidad', familia:'Protección Visual',       sub:'Lentes'},
+  {nombre:'Chaleco Reflectivo Clase 2',       codigo:'EPP-004', um:'Unidad', familia:'Protección Cuerpo',       sub:'Chalecos'},
+  {nombre:'Botas Seguridad Punta Acero',      codigo:'EPP-005', um:'Par',    familia:'Protección Pies',         sub:'Calzado'},
+  {nombre:'Respirador Media Cara 3M 6200',    codigo:'EPP-006', um:'Unidad', familia:'Protección Respiratoria', sub:'Respiradores'},
+  {nombre:'Arnés Cuerpo Completo MSA',        codigo:'EPP-007', um:'Unidad', familia:'Protección Caídas',       sub:'Arneses'},
+  {nombre:'Protector Auditivo NRR 25',        codigo:'EPP-008', um:'Par',    familia:'Protección Auditiva',     sub:'Tapones'},
+  {nombre:'Careta Facial Policarbonato',      codigo:'EPP-009', um:'Unidad', familia:'Protección Visual',       sub:'Caretas'},
+  {nombre:'Manga Retardante al Fuego',        codigo:'EPP-010', um:'Par',    familia:'Protección Cuerpo',       sub:'Mangas'},
+];
+
+// ══════════════════════════════════════════
+// ESTADO
+// ══════════════════════════════════════════
+let curStep = 1;
+let rolSel  = null;
+let photos  = [];
+let eppRows = [];
+let geoStr  = 'Lima, Perú';
+let corrNum = Math.floor(Math.random() * 50) + 1;
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+function pad(n,l=4){return String(n).padStart(l,'0');}
+function zz(n){return String(n).padStart(2,'0');}
+function getFecha(){const d=new Date();return zz(d.getDate())+'/'+zz(d.getMonth()+1)+'/'+d.getFullYear();}
+function getHora(){const d=new Date();return zz(d.getHours())+':'+zz(d.getMinutes());}
+function getCorr(){return 'INC-'+new Date().getFullYear()+'-'+pad(corrNum);}
+
+document.getElementById('meta-corr').textContent = getCorr();
+document.getElementById('meta-fecha').textContent = getFecha();
+
+// Geolocalización
+if(navigator.geolocation){
+  navigator.geolocation.getCurrentPosition(pos=>{
+    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`)
+      .then(r=>r.json()).then(d=>{
+        const a=d.address||{};
+        geoStr=[a.road,a.suburb,a.city,a.country].filter(Boolean).join(', ');
+      }).catch(()=>{});
+  },()=>{});
+}
+
+// ══════════════════════════════════════════
+// NAVEGACIÓN
+// ══════════════════════════════════════════
+function renderStep(s){
+  document.querySelectorAll('.screen').forEach((el,i)=>el.classList.toggle('active',i+1===s));
+  for(let i=1;i<=4;i++){
+    const st=document.getElementById('step-'+i);
+    const sc=document.getElementById('sc-'+i);
+    st.className='step'+(i===s?' active':i<s?' done':'');
+    sc.textContent = i<s ? '✓' : i;
+  }
+  const pcts=[25,50,75,100];
+  document.getElementById('prog').style.width=pcts[s-1]+'%';
+  curStep=s;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function next(from){
+  if(from===1){
+    if(!rolSel){showToast('Selecciona un rol para continuar.','error');return;}
+  }
+  if(from===2){
+    if(!document.getElementById('rep-nombre').value){showToast('Ingresa el nombre del reportante.','error');return;}
+    if(!document.getElementById('mismo-toggle').checked && !document.getElementById('afect-nombre').value){
+      showToast('Ingresa el nombre del afectado o activa el interruptor.','error');return;
+    }
+  }
+  if(from===3){
+    if(!document.getElementById('actividad').value){showToast('La actividad es obligatoria.','error');return;}
+    if(!document.getElementById('detalle').value){showToast('El detalle del incidente es obligatorio.','error');return;}
+  }
+  if(from===4) return;
+  if(from===3){initEpp();buildResumen();}
+  renderStep(from+1);
+}
+
+function prev(from){renderStep(from-1);}
+
+// ══════════════════════════════════════════
+// ROL
+// ══════════════════════════════════════════
+function selRol(r){
+  rolSel=r;
+  document.getElementById('rc-gestor').classList.toggle('selected',r==='gestor');
+  document.getElementById('rc-operativo').classList.toggle('selected',r==='operativo');
+  document.getElementById('rol-hint').style.display='none';
+  document.getElementById('meta-rol-wrap').style.display='flex';
+  document.getElementById('meta-rol').textContent=r==='gestor'?'🗂️ Gestor de Materiales':'🦺 Personal Operativo';
+}
+
+// ══════════════════════════════════════════
+// AUTOCOMPLETE STAFF
+// ══════════════════════════════════════════
+function hl(text,q){
+  if(!q)return text;
+  const i=text.toLowerCase().indexOf(q.toLowerCase());
+  if(i<0)return text;
+  return text.slice(0,i)+'<span class="hl">'+text.slice(i,i+q.length)+'</span>'+text.slice(i+q.length);
+}
+
+function filterStaff(val,prefix){
+  const drop=document.getElementById(prefix+'-drop');
+  if(!val||val.length<2){drop.style.display='none';return;}
+  const matches=DB_STAFF.filter(p=>p.nombre.toLowerCase().includes(val.toLowerCase()));
+  if(!matches.length){drop.innerHTML='<div class="dd-empty">Sin coincidencias</div>';drop.style.display='block';return;}
+  drop.innerHTML=matches.map((p,i)=>`<div class="dd-item" onclick="pickStaff('${prefix}',${DB_STAFF.indexOf(p)})">${hl(p.nombre,val)}<br><small style="color:var(--muted)">${p.cargo} · ${p.area}</small></div>`).join('');
+  drop.style.display='block';
+}
+
+function pickStaff(prefix,idx){
+  const p=DB_STAFF[idx];
+  document.getElementById(prefix+'-nombre').value=p.nombre;
+  document.getElementById(prefix+'-cargo').value=p.cargo;
+  document.getElementById(prefix+'-dni').value=p.dni;
+  document.getElementById(prefix+'-area').value=p.area;
+  document.getElementById(prefix+'-drop').style.display='none';
+}
+
+// ══════════════════════════════════════════
+// TOGGLE MISMO
+// ══════════════════════════════════════════
+function toggleMismo(checked){
+  const fields=document.getElementById('afect-fields');
+  if(checked){
+    const n=document.getElementById('rep-nombre').value;
+    if(!n){showToast('Primero completa los datos del reportante.','error');document.getElementById('mismo-toggle').checked=false;return;}
+    document.getElementById('afect-nombre').value=document.getElementById('rep-nombre').value;
+    document.getElementById('afect-cargo').value=document.getElementById('rep-cargo').value;
+    document.getElementById('afect-dni').value=document.getElementById('rep-dni').value;
+    document.getElementById('afect-area').value=document.getElementById('rep-area').value;
+    fields.style.display='none';
+  } else {
+    fields.style.display='block';
+  }
+}
+
+// ══════════════════════════════════════════
+// EPP ROWS
+// ══════════════════════════════════════════
+function initEpp(){
+  if(eppRows.length>0)return;
+  addEpp();
+  buildPhotoGrid();
+}
+
+function addEpp(){
+  if(eppRows.length>=5)return;
+  const idx=eppRows.length;
+  const isFirst=idx===0;
+  eppRows.push({idx});
+  const div=document.createElement('div');
+  div.className='epp-row';
+  div.id='epp-row-'+idx;
+  div.innerHTML=`
+    <div class="epp-header">
+      <span class="epp-badge ${isFirst?'req':'opt'}">${isFirst?'EPP 1 – Obligatorio':'EPP '+(idx+1)+' – Opcional'}</span>
+      ${!isFirst?`<button class="btn-remove" onclick="removeEpp(${idx})">✕ Quitar</button>`:''}
+    </div>
+    <div class="form-row col1" style="margin-bottom:9px">
+      <div class="form-group">
+        <label>Artículo EPP ${isFirst?'<span class="req">*</span>':''}</label>
+        <div class="ac-wrap">
+          <input type="text" id="epp-nom-${idx}" placeholder="Busca por nombre del artículo..." autocomplete="off" oninput="filterEpp(this.value,${idx})">
+          <div class="dropdown" id="epp-drop-${idx}"></div>
+        </div>
+      </div>
+    </div>
+    <div class="form-row" style="grid-template-columns:2fr 1fr 1fr 1fr;gap:9px;margin-bottom:9px">
+      <div class="form-group"><label>Código</label><input type="text" id="epp-cod-${idx}" readonly class="filled" placeholder="—"></div>
+      <div class="form-group"><label>U.M.</label><input type="text" id="epp-um-${idx}" readonly class="filled" placeholder="—"></div>
+      <div class="form-group"><label>Familia</label><input type="text" id="epp-fam-${idx}" readonly class="filled" placeholder="—"></div>
+      <div class="form-group"><label>Subfamilia</label><input type="text" id="epp-sub-${idx}" readonly class="filled" placeholder="—"></div>
+    </div>
+    <div class="form-row" style="grid-template-columns:100px 1fr">
+      <div class="form-group">
+        <label>Cantidad <span class="req">*</span></label>
+        <input type="number" id="epp-qty-${idx}" min="1" placeholder="0" oninput="if(this.value<1)this.value=''">
+      </div>
+    </div>`;
+  document.getElementById('epp-list').appendChild(div);
+  if(eppRows.length>=5)document.getElementById('btn-add-epp').disabled=true;
+}
+
+function removeEpp(idx){
+  document.getElementById('epp-row-'+idx).remove();
+  eppRows=eppRows.filter(r=>r.idx!==idx);
+  document.getElementById('btn-add-epp').disabled=false;
+}
+
+function filterEpp(val,idx){
+  const drop=document.getElementById('epp-drop-'+idx);
+  if(!val||val.length<2){drop.style.display='none';return;}
+  const matches=DB_EPP.filter(e=>e.nombre.toLowerCase().includes(val.toLowerCase()));
+  if(!matches.length){drop.innerHTML='<div class="dd-empty">Sin coincidencias</div>';drop.style.display='block';return;}
+  drop.innerHTML=matches.map(e=>`<div class="dd-item" onclick="pickEpp(${idx},${DB_EPP.indexOf(e)})">${hl(e.nombre,val)}<br><small style="color:var(--muted)">${e.codigo} · ${e.familia}</small></div>`).join('');
+  drop.style.display='block';
+}
+
+function pickEpp(rowIdx,eppIdx){
+  const e=DB_EPP[eppIdx];
+  document.getElementById('epp-nom-'+rowIdx).value=e.nombre;
+  document.getElementById('epp-cod-'+rowIdx).value=e.codigo;
+  document.getElementById('epp-um-'+rowIdx).value=e.um;
+  document.getElementById('epp-fam-'+rowIdx).value=e.familia;
+  document.getElementById('epp-sub-'+rowIdx).value=e.sub;
+  document.getElementById('epp-drop-'+rowIdx).style.display='none';
+}
+
+function recolectarEPPs(){
+  return eppRows.map(r=>{
+    const idx=r.idx;
+    return {
+      nombre:   (document.getElementById('epp-nom-'+idx)||{}).value||'',
+      codigo:   (document.getElementById('epp-cod-'+idx)||{}).value||'',
+      um:       (document.getElementById('epp-um-'+idx)||{}).value||'',
+      familia:  (document.getElementById('epp-fam-'+idx)||{}).value||'',
+      subfamilia:(document.getElementById('epp-sub-'+idx)||{}).value||'',
+      cantidad: parseInt((document.getElementById('epp-qty-'+idx)||{}).value)||0,
+    };
+  }).filter(e=>e.nombre);
+}
+
+// ══════════════════════════════════════════
+// FOTOS
+// ══════════════════════════════════════════
+function buildPhotoGrid(){
+  const grid=document.getElementById('photo-grid');
+  grid.innerHTML='';
+  for(let i=0;i<10;i++){
+    const slot=document.createElement('div');
+    slot.className='photo-slot'+(photos[i]?' filled':'');
+    slot.id='slot-'+i;
+    if(photos[i]){
+      slot.innerHTML=`<img src="${photos[i].data}" alt="Foto ${i+1}">
+        <div class="photo-wm">${photos[i].wm}</div>
+        <button class="slot-del" onclick="removePhoto(${i},event)">✕</button>`;
+    } else {
+      slot.innerHTML=`<div style="font-size:20px;margin-bottom:3px">📷</div><span>${i+1}</span>`;
+      slot.onclick=()=>document.getElementById('fi-galeria').click();
+    }
+    grid.appendChild(slot);
+  }
+  document.getElementById('photo-count').textContent=photos.length+' / 10 fotos';
+}
+
+function handleFiles(files){
+  for(const f of files){
+    if(photos.length>=10)break;
+    const reader=new FileReader();
+    reader.onload=e=>{
+      photos.push({data:e.target.result,wm:getFecha()+' '+getHora()+'\n'+geoStr,name:f.name});
+      buildPhotoGrid();
+    };
+    reader.readAsDataURL(f);
+  }
+}
+
+function removePhoto(idx,ev){
+  ev.stopPropagation();
+  photos.splice(idx,1);
+  buildPhotoGrid();
+}
+
+// ══════════════════════════════════════════
+// RESUMEN
+// ══════════════════════════════════════════
+function buildResumen(){
+  const rep=document.getElementById('rep-nombre').value||'—';
+  const mismo=document.getElementById('mismo-toggle').checked;
+  const afect=mismo?rep:(document.getElementById('afect-nombre').value||'—');
+  const act=document.getElementById('actividad').value||'—';
+  const tk=document.getElementById('ticket').value||'—';
+  const epps=recolectarEPPs();
+  document.getElementById('resumen').innerHTML=`
+    <div class="summary-row"><span>Correlativo</span><span>${getCorr()}</span></div>
+    <div class="summary-row"><span>Fecha / Hora</span><span>${getFecha()} ${getHora()}</span></div>
+    <div class="summary-row"><span>Rol</span><span>${rolSel==='gestor'?'Gestor de Materiales':'Personal Operativo'}</span></div>
+    <div class="summary-row"><span>Reportante</span><span>${rep}</span></div>
+    <div class="summary-row"><span>Afectado</span><span>${afect}</span></div>
+    <div class="summary-row"><span>Actividad</span><span>${act}</span></div>
+    <div class="summary-row"><span>Ticket / Ref.</span><span>${tk}</span></div>
+    <div class="summary-row"><span>EPPs registrados</span><span>${epps.length} artículo(s)</span></div>
+    <div class="summary-row"><span>Fotos adjuntas</span><span>${photos.length}</span></div>
+    <div class="summary-row"><span>PDF a generar</span><span style="color:var(--blue)">Informe de Incidente - ${getCorr()}.pdf</span></div>`;
+}
+
+// ══════════════════════════════════════════
+// ENVÍO AL FLUJO 1 (REAL)
+// ══════════════════════════════════════════
+async function enviarFlujo1(){
+  const epps=recolectarEPPs();
+  if(!epps.length){showToast('Completa al menos un EPP antes de enviar.','error');return;}
+  if(!epps[0].cantidad){showToast('Ingresa la cantidad del primer EPP.','error');return;}
+
+  const mismo=document.getElementById('mismo-toggle').checked;
+  const payload={
+    correlativo:  getCorr(),
+    fecha:        getFecha(),
+    hora:         getHora(),
+    rol:          rolSel==='gestor'?'Gestor de Materiales':'Personal Operativo',
+    reportante:{
+      nombre: document.getElementById('rep-nombre').value,
+      cargo:  document.getElementById('rep-cargo').value,
+      dni:    document.getElementById('rep-dni').value,
+      area:   document.getElementById('rep-area').value,
+    },
+    afectado:{
+      mismo:  mismo,
+      nombre: mismo?document.getElementById('rep-nombre').value:document.getElementById('afect-nombre').value,
+      cargo:  mismo?document.getElementById('rep-cargo').value:document.getElementById('afect-cargo').value,
+      dni:    mismo?document.getElementById('rep-dni').value:document.getElementById('afect-dni').value,
+      area:   mismo?document.getElementById('rep-area').value:document.getElementById('afect-area').value,
+    },
+    actividad:    document.getElementById('actividad').value,
+    ticket:       document.getElementById('ticket').value,
+    detalle:      document.getElementById('detalle').value,
+    geolocalizacion: geoStr,
+    epps:         epps,
+  };
+
+  // Mostrar loading
+  showLoading('Enviando registro a SharePoint...');
+  document.getElementById('btn-enviar').disabled=true;
+  document.getElementById('warn-envio').style.display='none';
+
+  try {
+    const res = await fetch(FLUJO1_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload),
+    });
+
+    hideLoading();
+
+    if(res.ok){
+      let data={};
+      try{data=await res.json();}catch(e){}
+      showToast('✅ Registro guardado correctamente en SharePoint. Correlativo: '+getCorr(),'success');
+      document.getElementById('resumen').innerHTML+=`<div class="summary-row" style="background:#D1FAE5;border-radius:6px;padding:8px;margin-top:8px"><span style="color:#065F46;font-weight:600">✅ Guardado en SharePoint</span><span style="color:#065F46">${getCorr()}</span></div>`;
+      document.getElementById('btn-enviar').textContent='✓ Enviado';
+      document.getElementById('btn-enviar').disabled=true;
+    } else {
+      const errTxt=await res.text().catch(()=>'Error desconocido');
+      document.getElementById('warn-envio').style.display='flex';
+      document.getElementById('warn-txt').textContent='Error del servidor ('+res.status+'): '+errTxt;
+      document.getElementById('btn-enviar').disabled=false;
+      showToast('Error al guardar. Código: '+res.status,'error');
+    }
+  } catch(err){
+    hideLoading();
+    document.getElementById('btn-enviar').disabled=false;
+    document.getElementById('warn-envio').style.display='flex';
+    document.getElementById('warn-txt').textContent='Error de red o CORS: '+err.message+'. Verifica que el flujo tenga habilitado "Anyone" y el header Access-Control-Allow-Origin: *';
+    showToast('Error de conexión. Ver detalle abajo.','error');
+  }
+}
+
+// ══════════════════════════════════════════
+// UTILIDADES UI
+// ══════════════════════════════════════════
+function showLoading(txt='Cargando...'){
+  document.getElementById('loading-text').textContent=txt;
+  document.getElementById('loading-overlay').classList.add('show');
+}
+function hideLoading(){document.getElementById('loading-overlay').classList.remove('show');}
+
+let toastTimer;
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast show '+(type||'');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),4000);
+}
+
+// Cerrar dropdowns al clicar fuera
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.ac-wrap'))
+    document.querySelectorAll('.dropdown').forEach(d=>d.style.display='none');
+});
+</script>
+</body>
+</html>
