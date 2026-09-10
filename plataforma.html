@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Plataforma de Validación EPP – PA PERU SAC</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+input,textarea,select{font-size:16px !important;touch-action:manipulation}
+:root{
+  --bg:#E7E8EA;--detail:#BBBCBC;--blue:#307FE2;--red:#CE0058;
+  --dark:#1A2332;--text:#2C3E50;--muted:#6B7280;--border:#D1D5DB;
+  --white:#FFFFFF;--success:#10B981;--warning:#F59E0B;--danger:#DC2626;--input-bg:#F9FAFB;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+.header{background:var(--dark);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--blue)}
+.logo-box{width:48px;height:48px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:white;line-height:1.2;text-align:center;flex-shrink:0}
+.header-left{display:flex;align-items:center;gap:12px}
+.logo-name{color:white;font-size:13px;font-weight:600}
+.logo-sub{color:var(--detail);font-size:10px;margin-top:1px}
+.header-right{display:flex;align-items:center;gap:14px}
+.header-user{text-align:right}
+.header-title{color:white;font-size:13px;font-weight:600}
+.header-sub{color:var(--detail);font-size:11px;margin-top:2px}
+.btn-logout{background:transparent;border:1px solid var(--detail);color:var(--detail);border-radius:6px;padding:6px 12px;font-size:11px;cursor:pointer}
+.btn-logout:hover{border-color:white;color:white}
+.screen{display:none}
+.screen.active{display:block}
+
+/* ---------- LOGIN ---------- */
+#screen-login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,var(--dark) 0%,#2C3E50 60%,var(--blue) 140%);padding:20px}
+.login-card{background:white;border-radius:16px;padding:36px 30px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.login-logo{width:64px;height:64px;background:var(--blue);border-radius:14px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:13px;text-align:center;line-height:1.2;margin:0 auto 16px}
+.login-title{text-align:center;font-size:17px;font-weight:700;color:var(--dark)}
+.login-sub{text-align:center;font-size:12px;color:var(--muted);margin-top:4px;margin-bottom:24px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.field input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:8px;background:var(--input-bg);letter-spacing:.5px}
+.field input:focus{outline:none;border-color:var(--blue);background:white}
+.btn-primary{width:100%;background:var(--blue);color:white;border:none;border-radius:8px;padding:13px;font-size:14px;font-weight:600;cursor:pointer;margin-top:6px}
+.btn-primary:hover{background:#2568c4}
+.btn-primary:disabled{background:var(--detail);cursor:not-allowed}
+.login-msg{font-size:12.5px;border-radius:8px;padding:10px 12px;margin-bottom:14px;display:none}
+.login-msg.error{display:block;background:#FDEBEE;color:var(--red);border:1px solid #F6C3D2}
+.login-msg.info{display:block;background:#EAF2FE;color:var(--blue);border:1px solid #C6DDFB}
+.login-help{text-align:center;font-size:11px;color:var(--muted);margin-top:18px}
+.login-help a{color:var(--blue);text-decoration:none}
+
+/* ---------- BANDEJA ---------- */
+.main{padding:18px 22px;max-width:1180px;margin:0 auto}
+.meta-bar{background:#F0F4F8;border:1px solid var(--border);border-radius:10px;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.meta-bar .titulo{font-size:14px;font-weight:700;color:var(--dark)}
+.meta-bar .sub{font-size:11.5px;color:var(--muted)}
+.stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+.stat-card{background:white;border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;cursor:pointer;transition:.15s}
+.stat-card:hover{border-color:var(--blue);transform:translateY(-1px)}
+.stat-card.active{border-color:var(--blue);background:#F0F7FF}
+.stat-num{font-size:22px;font-weight:800;color:var(--dark)}
+.stat-label{font-size:11px;color:var(--muted);margin-top:2px}
+.filters-row{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.chip{border:1px solid var(--border);background:white;border-radius:20px;padding:6px 14px;font-size:12px;cursor:pointer;color:var(--muted)}
+.chip.active{background:var(--blue);border-color:var(--blue);color:white}
+.select-area{margin-left:auto;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;background:white}
+.table-wrap{background:white;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{background:#F5F6F8;text-align:left;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;padding:11px 14px;border-bottom:1px solid var(--border)}
+td{padding:12px 14px;font-size:12.5px;border-bottom:1px solid #EEF0F2}
+tr.row:hover{background:#F9FBFF;cursor:pointer}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10.5px;font-weight:600}
+.badge.nuevo{background:#EAF2FE;color:var(--blue)}
+.badge.revision{background:#FEF6E7;color:#B45309}
+.badge.aprobado{background:#E7F8F0;color:#0F9D58}
+.badge.rechazado{background:#FDEBEE;color:var(--red)}
+.badge.sustento{background:#FDEBEE;color:var(--danger)}
+.epp-tags{display:flex;gap:4px;flex-wrap:wrap}
+.epp-tag{width:8px;height:8px;border-radius:50%;display:inline-block}
+.epp-tag.azul{background:var(--blue)}.epp-tag.verde{background:var(--success)}.epp-tag.naranja{background:var(--warning)}.epp-tag.rojo{background:var(--red)}
+
+/* ---------- DETALLE 50/50 ---------- */
+#screen-detalle .main{max-width:1300px}
+.back-link{display:inline-flex;align-items:center;gap:6px;color:var(--blue);font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:12px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.split{grid-template-columns:1fr}}
+.panel{background:white;border:1px solid var(--border);border-radius:12px;padding:18px;max-height:80vh;overflow-y:auto}
+.panel-title{font-size:12.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--border)}
+.panel-title.right{color:var(--blue);border-color:var(--blue)}
+.block{border:1px solid #EEF0F2;border-radius:10px;padding:14px;margin-bottom:12px;background:#FCFCFD}
+.block-h{font-size:12.5px;font-weight:700;color:var(--dark);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:12px;border-bottom:1px dashed #EEF0F2}
+.kv:last-child{border-bottom:none}
+.kv .k{color:var(--muted)}
+.kv .v{font-weight:600;text-align:right;color:var(--text)}
+.alert{border-radius:8px;padding:8px 10px;font-size:11.5px;font-weight:600;margin-top:6px}
+.alert.warn{background:#FEF6E7;color:#B45309}
+.alert.danger{background:#FDEBEE;color:var(--danger)}
+.alert.ok{background:#E7F8F0;color:#0F9D58}
+.alert.muted{background:#F3F4F6;color:var(--muted)}
+.thumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.thumb{width:44px;height:44px;border-radius:6px;background:var(--detail);display:flex;align-items:center;justify-content:center;font-size:16px}
+.mini-table{width:100%;font-size:11.5px;border-collapse:collapse;margin-top:6px}
+.mini-table th{background:#F5F6F8;padding:6px 8px;font-size:10px}
+.mini-table td{padding:6px 8px;border-bottom:1px solid #EEF0F2}
+.tabs-epp{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.tab-epp{border:1.5px solid var(--border);border-radius:8px;padding:7px 12px;font-size:11.5px;font-weight:600;cursor:pointer;background:white;color:var(--muted)}
+.tab-epp.active{border-color:var(--blue);color:var(--blue);background:#F0F7FF}
+.tab-epp.done{border-color:var(--success);color:var(--success)}
+.field-g{margin-bottom:12px}
+.field-g label{display:block;font-size:11.5px;font-weight:600;color:var(--muted);margin-bottom:5px}
+.field-g select,.field-g input,.field-g textarea{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:7px;background:var(--input-bg);font-size:12.5px}
+.field-g textarea{resize:vertical;min-height:56px}
+.radio-row{display:flex;gap:8px;flex-wrap:wrap}
+.radio-opt{border:1.5px solid var(--border);border-radius:7px;padding:8px 12px;font-size:11.5px;cursor:pointer;flex:1;text-align:center;min-width:110px}
+.radio-opt.sel{border-color:var(--blue);background:#F0F7FF;color:var(--blue);font-weight:600}
+.decision-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.dec-opt{border:1.5px solid var(--border);border-radius:9px;padding:10px;font-size:11.5px;cursor:pointer;text-align:left}
+.dec-opt.sel{border-color:var(--blue);background:#F0F7FF}
+.dec-opt b{display:block;font-size:12px;margin-bottom:2px}
+.progress-wrap{background:#F0F4F8;border-radius:8px;padding:10px 12px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.progress-track{flex:1;height:6px;background:var(--border);border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;background:var(--blue)}
+.action-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.btn{border:none;border-radius:8px;padding:10px 16px;font-size:12.5px;font-weight:600;cursor:pointer}
+.btn-blue{background:var(--blue);color:white}
+.btn-outline{background:white;border:1.5px solid var(--border);color:var(--text)}
+.btn-green{background:var(--success);color:white}
+.btn-green:disabled{background:var(--detail);cursor:not-allowed}
+.audit-item{font-size:11.5px;padding:7px 0;border-bottom:1px dashed #EEF0F2;color:var(--muted)}
+.audit-item b{color:var(--text)}
+.fab-help{position:fixed;left:18px;bottom:18px;width:48px;height:48px;border-radius:50%;background:var(--blue);color:white;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 6px 18px rgba(0,0,0,.25);cursor:pointer;z-index:50}
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.5);border-top-color:white;border-radius:50%;display:inline-block;animation:spin .7s linear infinite;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- CONFIGURACIÓN DE ENDPOINTS — completar con las URLs reales   -->
+<!-- de los flujos de Power Automate del Módulo 2 (APROB_EPP_M2)  -->
+<!-- ============================================================ -->
+<script>
+const CONFIG = {
+  // Flujo APROB_EPP_M2_GEN_Login — valida DNI+PIN contra Config_Accesos
+  URL_LOGIN: "PEGAR_AQUI_URL_FLUJO_APROB_EPP_M2_GEN_Login",
+  // Flujo APROB_EPP_M2_GEN_GetIncidencias — trae reportes según área del usuario
+  URL_GET_INCIDENCIAS: "PEGAR_AQUI_URL_FLUJO_APROB_EPP_M2_GEN_GetIncidencias",
+  // Flujo APROB_EPP_M2_GEN_SaveValidacion — guarda decisión en Validaciones_EPP
+  URL_SAVE_VALIDACION: "PEGAR_AQUI_URL_FLUJO_APROB_EPP_M2_GEN_SaveValidacion",
+};
+</script>
+
+<!-- ============================================================ -->
+<!-- PANTALLA LOGIN                                                -->
+<!-- ============================================================ -->
+<div id="screen-login" class="screen active">
+  <div class="login-card">
+    <div class="login-logo">PA<br>PERU</div>
+    <div class="login-title">SISTEMA EPP — PA PERU SAC</div>
+    <div class="login-sub">Plataforma de Validación de Incidencias</div>
+
+    <div id="loginMsg" class="login-msg"></div>
+
+    <form id="loginForm" onsubmit="return false;">
+      <div class="field">
+        <label>DNI</label>
+        <input type="text" id="inDni" inputmode="numeric" maxlength="8" placeholder="Ej: 25709149" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>PIN</label>
+        <input type="password" id="inPin" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off">
+      </div>
+      <button type="submit" class="btn-primary" id="btnLogin" onclick="hacerLogin()">INGRESAR AL SISTEMA</button>
+    </form>
+    <div class="login-help">¿Problemas para acceder? Contacta al área de Logística.</div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PANTALLA BANDEJA — LOGÍSTICA                                  -->
+<!-- ============================================================ -->
+<div id="screen-bandeja" class="screen">
+  <div class="header">
+    <div class="header-left">
+      <div class="logo-box">PA<br>PERU</div>
+      <div>
+        <div class="logo-name">PA PERU SAC</div>
+        <div class="logo-sub">Módulo Logística · Bandeja de Incidencias EPP</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-user">
+        <div class="header-title" id="lblUsuario">—</div>
+        <div class="header-sub" id="lblArea">Logística</div>
+      </div>
+      <button class="btn-logout" onclick="cerrarSesion()">Salir</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="stat-row">
+      <div class="stat-card active" data-f="todos" onclick="filtrarEstado(this,'todos')">
+        <div class="stat-num" id="statTotal">24</div><div class="stat-label">Total reportes</div>
+      </div>
+      <div class="stat-card" data-f="nuevo" onclick="filtrarEstado(this,'nuevo')">
+        <div class="stat-num" id="statNuevos">7</div><div class="stat-label">Nuevos</div>
+      </div>
+      <div class="stat-card" data-f="revision" onclick="filtrarEstado(this,'revision')">
+        <div class="stat-num" id="statRevision">9</div><div class="stat-label">En revisión</div>
+      </div>
+      <div class="stat-card" data-f="aprobado" onclick="filtrarEstado(this,'aprobado')">
+        <div class="stat-num" id="statAprobados">6</div><div class="stat-label">Aprobados</div>
+      </div>
+      <div class="stat-card" data-f="sustento" onclick="filtrarEstado(this,'sustento')">
+        <div class="stat-num" id="statSustento">2</div><div class="stat-label">Pend. sustento</div>
+      </div>
+    </div>
+
+    <div class="filters-row">
+      <div class="chip active" data-f="todos" onclick="filtrarEstado(this,'todos')">Todos</div>
+      <div class="chip" data-f="nuevo" onclick="filtrarEstado(this,'nuevo')">Nuevos</div>
+      <div class="chip" data-f="revision" onclick="filtrarEstado(this,'revision')">En revisión</div>
+      <div class="chip" data-f="aprobado" onclick="filtrarEstado(this,'aprobado')">Aprobados</div>
+      <div class="chip" data-f="rechazado" onclick="filtrarEstado(this,'rechazado')">Cerrados</div>
+      <select class="select-area" id="selArea" onchange="renderBandeja()">
+        <option value="">Todas las áreas operativas</option>
+        <option>EMERGENCIA BT</option><option>EMERGENCIA MT</option><option>ULE</option>
+        <option>MANTENIMIENTO PREVENTIVO</option><option>OBRAS</option><option>CONEXIONES</option>
+        <option>LECTURA</option><option>VEREDAS</option><option>ALMACEN</option>
+      </select>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Correlativo</th><th>Fecha</th><th>Área</th><th>Colaborador</th><th>EPPs</th><th>Estado</th>
+        </tr></thead>
+        <tbody id="tbodyBandeja"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PANTALLA DETALLE — SPLIT 50/50                                -->
+<!-- ============================================================ -->
+<div id="screen-detalle" class="screen">
+  <div class="header">
+    <div class="header-left">
+      <div class="logo-box">PA<br>PERU</div>
+      <div>
+        <div class="logo-name">PA PERU SAC</div>
+        <div class="logo-sub">Módulo Logística · Detalle de reporte</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-user">
+        <div class="header-title" id="lblUsuario2">—</div>
+        <div class="header-sub">Logística</div>
+      </div>
+      <button class="btn-logout" onclick="cerrarSesion()">Salir</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="back-link" onclick="volverBandeja()">&larr; Volver a la bandeja</div>
+
+    <div class="progress-wrap">
+      <div style="font-size:11.5px;font-weight:700;color:var(--dark)" id="progLabel">EPP 1 de 3 validados</div>
+      <div class="progress-track"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+    </div>
+
+    <div class="tabs-epp" id="tabsEpp"></div>
+
+    <div class="split">
+      <!-- PANEL IZQUIERDO — SOLO LECTURA -->
+      <div class="panel">
+        <div class="panel-title">Información del reporte y datos externos</div>
+
+        <div class="block">
+          <div class="block-h">🪪 Bloque 1 — Identificación del reporte</div>
+          <div class="kv"><span class="k">Correlativo</span><span class="v" id="d_correlativo">—</span></div>
+          <div class="kv"><span class="k">Fecha y hora</span><span class="v" id="d_fechahora">—</span></div>
+          <div class="kv"><span class="k">Tipo de reporte</span><span class="v" id="d_tiporeporte">—</span></div>
+          <div class="kv"><span class="k">Actividad realizada</span><span class="v" id="d_actividad">—</span></div>
+          <div class="kv"><span class="k">N° Ticket / OT</span><span class="v" id="d_ticket">—</span></div>
+          <div class="kv"><span class="k">Geolocalización</span><span class="v" id="d_geo">—</span></div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:8px" id="d_detalle">—</div>
+          <div class="thumbs" id="d_fotos"></div>
+        </div>
+
+        <div class="block">
+          <div class="block-h">👤 Bloque 2 — Estado del colaborador (RRHH)</div>
+          <div class="kv"><span class="k">Nombre completo</span><span class="v" id="d_nombre">—</span></div>
+          <div class="kv"><span class="k">DNI</span><span class="v" id="d_dni">—</span></div>
+          <div class="kv"><span class="k">Estado contrato</span><span class="v" id="d_contrato">—</span></div>
+          <div class="kv"><span class="k">Cargo</span><span class="v" id="d_cargo">—</span></div>
+          <div class="kv"><span class="k">Área operativa</span><span class="v" id="d_areaop">—</span></div>
+          <div class="kv"><span class="k">Fecha de ingreso</span><span class="v" id="d_ingreso">—</span></div>
+          <div class="kv"><span class="k">Tiempo en empresa</span><span class="v" id="d_tiempo">—</span></div>
+        </div>
+
+        <div class="block">
+          <div class="block-h">📊 Bloque 3 — Historial SAP / DSIGE</div>
+          <table class="mini-table">
+            <thead><tr><th>Sistema</th><th>Fecha</th><th>N° Doc</th><th>Cant.</th><th>Días</th></tr></thead>
+            <tbody id="d_historial"></tbody>
+          </table>
+          <div id="d_indicadores"></div>
+        </div>
+
+        <div class="block">
+          <div class="block-h">📦 Bloque 4 — Estado de devolución en Almacén</div>
+          <div id="d_devolucion"></div>
+        </div>
+
+        <div class="block">
+          <div class="block-h">🛠️ Bloque 5 — Validación previa de Operaciones</div>
+          <div class="kv"><span class="k">Tipo catalogado</span><span class="v" id="d_optipo">—</span></div>
+          <div class="kv"><span class="k">Decisión Operaciones</span><span class="v" id="d_opdecision">—</span></div>
+          <div class="kv"><span class="k">N° solicitud</span><span class="v" id="d_opsolicitud">—</span></div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:6px" id="d_opcomentario">—</div>
+        </div>
+      </div>
+
+      <!-- PANEL DERECHO — VALIDACIÓN LOGÍSTICA -->
+      <div class="panel">
+        <div class="panel-title right">Validación que llena Logística</div>
+
+        <div class="block">
+          <div class="block-h">🔍 Bloque 6 — Análisis de no conformidad</div>
+          <div class="field-g">
+            <label>¿Es incidente recurrente?</label>
+            <div class="radio-row" data-group="recurrente">
+              <div class="radio-opt" data-val="si">Sí</div>
+              <div class="radio-opt" data-val="no">No</div>
+            </div>
+          </div>
+          <div class="field-g">
+            <label>¿Deterioro consistente con uso?</label>
+            <div class="radio-row" data-group="consistente">
+              <div class="radio-opt" data-val="si">Sí</div>
+              <div class="radio-opt" data-val="no">No</div>
+              <div class="radio-opt" data-val="nd">No se puede determinar</div>
+            </div>
+          </div>
+          <div class="field-g">
+            <label>Tipo de no conformidad</label>
+            <select id="f_tiponc">
+              <option value="">Seleccionar...</option>
+              <option>Deterioro normal</option><option>Uso indebido</option>
+              <option>Pérdida</option><option>Robo</option>
+              <option>Error de asignación</option><option>Sin no conformidad</option>
+            </select>
+          </div>
+          <div class="field-g">
+            <label>Observaciones</label>
+            <textarea id="f_obsnc" placeholder="Observaciones del análisis..."></textarea>
+          </div>
+        </div>
+
+        <div class="block">
+          <div class="block-h">📦 Bloque 7 — Verificación de stock</div>
+          <div class="field-g"><label>Stock disponible</label><input type="number" id="f_stock" placeholder="0"></div>
+          <div class="field-g">
+            <label>¿Hay stock?</label>
+            <div class="radio-row" data-group="haystock">
+              <div class="radio-opt" data-val="si">Sí</div>
+              <div class="radio-opt" data-val="parcial">Parcial</div>
+              <div class="radio-opt" data-val="no">No</div>
+            </div>
+          </div>
+          <div class="field-g"><label>EPP sustituto (si no hay stock)</label><input type="text" id="f_sustituto" placeholder="Código y descripción"></div>
+        </div>
+
+        <div class="block">
+          <div class="block-h">✅ Bloque 8 — Decisión de Logística</div>
+          <div class="decision-grid" id="decisionGrid">
+            <div class="dec-opt" data-val="aprobar"><b>✅ Aprobar reposición</b>Almacén puede entregar</div>
+            <div class="dec-opt" data-val="aprobar_devolucion"><b>📦 Aprobar + Devolución</b>Pendiente devolver dañado</div>
+            <div class="dec-opt" data-val="sustento"><b>📋 Solicitar sustento</b>A Operaciones</div>
+            <div class="dec-opt" data-val="compromiso"><b>📝 Generar compromiso</b>Con fecha límite</div>
+            <div class="dec-opt" data-val="hse"><b>🔀 Derivar a HSE</b>Validación complementaria</div>
+            <div class="dec-opt" data-val="rrhh"><b>🔀 Derivar a RRHH</b>Posible descuento</div>
+            <div class="dec-opt" data-val="hse_rrhh"><b>🔀 Derivar HSE + RRHH</b>Ambas áreas</div>
+            <div class="dec-opt" data-val="rechazar"><b>❌ Rechazar</b>Cierra sin reposición</div>
+          </div>
+          <div id="decisionCamposExtra"></div>
+        </div>
+
+        <div class="block">
+          <div class="block-h">🕓 Bloque 9 — Auditoría</div>
+          <div class="audit-item"><b>DURAN PAREDES WILMER</b> · hoy · sesión iniciada</div>
+          <div id="d_auditoria"></div>
+        </div>
+
+        <div class="action-row">
+          <button class="btn btn-outline" onclick="guardarBorrador()">Guardar borrador</button>
+          <button class="btn btn-blue" onclick="guardarEppActual()">Guardar EPP</button>
+          <button class="btn btn-outline" onclick="siguienteEpp()">Siguiente EPP →</button>
+          <button class="btn btn-green" id="btnRegistrar" onclick="registrarTodo()" disabled>Registrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="fab-help" title="Ayuda">?</div>
+
+<script>
+/* ============================================================
+   ESTADO EN MEMORIA
+   ============================================================ */
+let SESION = null;          // {nombre, dni, area, areaOperativa}
+let REPORTES = [];          // reportes cargados en la bandeja
+let FILTRO_ESTADO = 'todos';
+let REPORTE_ACTIVO = null;
+let EPP_ACTIVO_IDX = 0;
+let VALIDACIONES = {};      // { correlativo: { eppIdx: {decision, campos...} } }
+
+/* ============================================================
+   LOGIN — llama al flujo APROB_EPP_M2_GEN_Login (Power Automate)
+   Espera un POST { dni, pin } y una respuesta JSON:
+   { success: true, nombre, area, areaOperativa, activo: true }
+   o { success:false, motivo:"credenciales"|"inactivo" }
+   ============================================================ */
+async function hacerLogin(){
+  const dni = document.getElementById('inDni').value.trim();
+  const pin = document.getElementById('inPin').value.trim();
+  const msg = document.getElementById('loginMsg');
+  const btn = document.getElementById('btnLogin');
+  msg.className = 'login-msg';
+  msg.textContent = '';
+
+  if(!dni || !pin){
+    msg.className = 'login-msg error';
+    msg.textContent = 'Ingresa tu DNI y tu PIN.';
+    return;
+  }
+  if(CONFIG.URL_LOGIN.startsWith('PEGAR_AQUI')){
+    msg.className = 'login-msg error';
+    msg.textContent = 'El flujo de login (APROB_EPP_M2_GEN_Login) aún no está configurado. Completa CONFIG.URL_LOGIN en el HTML con la URL del flujo de Power Automate.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Verificando...';
+
+  try{
+    const resp = await fetch(CONFIG.URL_LOGIN, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ dni, pin })
+    });
+    const data = await resp.json();
+
+    if(data.success && data.activo !== false){
+      SESION = { nombre:data.nombre||'', dni, area:data.area||'', areaOperativa:data.areaOperativa||'' };
+      irABandejaSegunArea();
+    } else if(data.activo === false){
+      msg.className = 'login-msg error';
+      msg.textContent = 'Acceso deshabilitado. Contacta a Logística.';
+    } else {
+      msg.className = 'login-msg error';
+      msg.textContent = 'DNI o PIN incorrecto. Intenta nuevamente.';
+    }
+  }catch(e){
+    msg.className = 'login-msg error';
+    msg.textContent = 'No se pudo contactar al servidor de acceso. Verifica tu conexión e intenta de nuevo.';
+    console.error('Login error:', e);
+  }finally{
+    btn.disabled = false;
+    btn.textContent = 'INGRESAR AL SISTEMA';
+  }
+}
+
+function irABandejaSegunArea(){
+  // v1: solo Logística está implementada. Los otros 6 módulos quedan pendientes.
+  document.getElementById('lblUsuario').textContent = SESION.nombre || SESION.dni;
+  document.getElementById('lblArea').textContent = SESION.area || '—';
+  document.getElementById('lblUsuario2').textContent = SESION.nombre || SESION.dni;
+  mostrarPantalla('screen-bandeja');
+  cargarIncidencias();
+}
+
+function cerrarSesion(){
+  SESION = null;
+  document.getElementById('inDni').value = '';
+  document.getElementById('inPin').value = '';
+  mostrarPantalla('screen-login');
+}
+
+function mostrarPantalla(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ============================================================
+   CARGA DE INCIDENCIAS — llama a APROB_EPP_M2_GEN_GetIncidencias
+   Mientras ese flujo no exista, usa datos de ejemplo (mock) para
+   poder revisar el diseño y flujo de la bandeja.
+   ============================================================ */
+async function cargarIncidencias(){
+  if(!CONFIG.URL_GET_INCIDENCIAS.startsWith('PEGAR_AQUI')){
+    try{
+      const resp = await fetch(CONFIG.URL_GET_INCIDENCIAS, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ area: SESION.area, areaOperativa: SESION.areaOperativa })
+      });
+      REPORTES = await resp.json();
+      renderBandeja();
+      return;
+    }catch(e){ console.warn('GetIncidencias no disponible, usando datos de ejemplo.', e); }
+  }
+  REPORTES = REPORTES_MOCK;
+  renderBandeja();
+}
+
+function filtrarEstado(el, estado){
+  FILTRO_ESTADO = estado;
+  document.querySelectorAll('.stat-card,.chip').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll(`[data-f="${estado}"]`).forEach(c=>c.classList.add('active'));
+  renderBandeja();
+}
+
+function renderBandeja(){
+  const area = document.getElementById('selArea').value;
+  const tbody = document.getElementById('tbodyBandeja');
+  let lista = REPORTES.filter(r=>{
+    if(FILTRO_ESTADO!=='todos' && r.estadoKey!==FILTRO_ESTADO) return false;
+    if(area && r.area!==area) return false;
+    return true;
+  });
+  document.getElementById('statTotal').textContent = REPORTES.length;
+  document.getElementById('statNuevos').textContent = REPORTES.filter(r=>r.estadoKey==='nuevo').length;
+  document.getElementById('statRevision').textContent = REPORTES.filter(r=>r.estadoKey==='revision').length;
+  document.getElementById('statAprobados').textContent = REPORTES.filter(r=>r.estadoKey==='aprobado').length;
+  document.getElementById('statSustento').textContent = REPORTES.filter(r=>r.estadoKey==='sustento').length;
+
+  tbody.innerHTML = lista.map(r=>`
+    <tr class="row" onclick="abrirDetalle('${r.correlativo}')">
+      <td><b>${r.correlativo}</b></td>
+      <td>${r.fecha}</td>
+      <td>${r.area}</td>
+      <td>${r.colaborador}</td>
+      <td><div class="epp-tags">${r.epps.map(e=>`<span class="epp-tag ${e.color}" title="${e.nombre}"></span>`).join('')}</div></td>
+      <td><span class="badge ${r.estadoKey}">${r.estadoLabel}</span></td>
+    </tr>
+  `).join('') || `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Sin reportes para este filtro.</td></tr>`;
+}
+
+/* ============================================================
+   DETALLE DE REPORTE — panel dividido 50/50
+   ============================================================ */
+function abrirDetalle(correlativo){
+  REPORTE_ACTIVO = REPORTES.find(r=>r.correlativo===correlativo);
+  if(!REPORTE_ACTIVO) return;
+  EPP_ACTIVO_IDX = 0;
+  if(!VALIDACIONES[correlativo]) VALIDACIONES[correlativo] = {};
+  mostrarPantalla('screen-detalle');
+  renderTabsEpp();
+  renderDetalle();
+}
+
+function volverBandeja(){ mostrarPantalla('screen-bandeja'); }
+
+function renderTabsEpp(){
+  const wrap = document.getElementById('tabsEpp');
+  const val = VALIDACIONES[REPORTE_ACTIVO.correlativo];
+  wrap.innerHTML = REPORTE_ACTIVO.epps.map((e,i)=>{
+    const done = val[i] && val[i].decision;
+    return `<div class="tab-epp ${i===EPP_ACTIVO_IDX?'active':''} ${done?'done':''}" onclick="seleccionarEpp(${i})">${done?'✓ ':''}${e.nombre}</div>`;
+  }).join('');
+  const totalDone = REPORTE_ACTIVO.epps.filter((e,i)=>val[i] && val[i].decision).length;
+  document.getElementById('progLabel').textContent = `EPP ${totalDone} de ${REPORTE_ACTIVO.epps.length} validados`;
+  document.getElementById('progFill').style.width = (totalDone/REPORTE_ACTIVO.epps.length*100)+'%';
+  document.getElementById('btnRegistrar').disabled = totalDone < REPORTE_ACTIVO.epps.length;
+}
+
+function seleccionarEpp(i){ EPP_ACTIVO_IDX = i; renderTabsEpp(); renderDetalle(); }
+
+function renderDetalle(){
+  const r = REPORTE_ACTIVO;
+  document.getElementById('d_correlativo').textContent = r.correlativo;
+  document.getElementById('d_fechahora').textContent = r.fecha+' · '+r.hora;
+  document.getElementById('d_tiporeporte').textContent = r.tipoReporte || 'Sin catalogar por Operaciones';
+  document.getElementById('d_actividad').textContent = r.actividad;
+  document.getElementById('d_ticket').textContent = r.ticket || '—';
+  document.getElementById('d_geo').textContent = r.geo;
+  document.getElementById('d_detalle').textContent = r.detalle;
+  document.getElementById('d_fotos').innerHTML = r.fotos.map(()=>'<div class="thumb">📷</div>').join('');
+
+  document.getElementById('d_nombre').textContent = r.colaborador;
+  document.getElementById('d_dni').textContent = r.dni;
+  document.getElementById('d_contrato').innerHTML = r.contratoActivo
+    ? '✅ ACTIVO' : '<span style="color:var(--danger)">⚠️ '+r.contratoEstado+'</span>';
+  document.getElementById('d_cargo').textContent = r.cargo;
+  document.getElementById('d_areaop').textContent = r.area;
+  document.getElementById('d_ingreso').textContent = r.fechaIngreso;
+  document.getElementById('d_tiempo').textContent = r.tiempoEmpresa;
+
+  document.getElementById('d_historial').innerHTML = r.historial.map(h=>`
+    <tr><td>${h.sistema}</td><td>${h.fecha}</td><td>${h.doc}</td><td>${h.cantidad}</td><td>${h.dias}${h.alerta?' ⚠️':''}</td></tr>
+  `).join('') || '<tr><td colspan="5" style="color:var(--muted)">Sin historial SAP/DSIGE para este DNI/código.</td></tr>';
+  document.getElementById('d_indicadores').innerHTML = r.indicadores.map(i=>`<div class="alert ${i.tipo}">${i.texto}</div>`).join('');
+
+  document.getElementById('d_devolucion').innerHTML = `<div class="alert ${r.devolucion.tipo}">${r.devolucion.texto}</div>`;
+
+  document.getElementById('d_optipo').textContent = r.opTipo || '—';
+  document.getElementById('d_opdecision').textContent = r.opDecision || '—';
+  document.getElementById('d_opsolicitud').textContent = r.opSolicitud || '—';
+  document.getElementById('d_opcomentario').textContent = r.opComentario || 'Sin comentarios de Operaciones.';
+
+  // Restaurar validación guardada de este EPP si existe
+  const guardado = VALIDACIONES[r.correlativo][EPP_ACTIVO_IDX] || {};
+  document.querySelectorAll('.radio-row').forEach(row=>{
+    row.querySelectorAll('.radio-opt').forEach(o=>o.classList.remove('sel'));
+  });
+  document.getElementById('f_tiponc').value = guardado.tiponc || '';
+  document.getElementById('f_obsnc').value = guardado.obsnc || '';
+  document.getElementById('f_stock').value = guardado.stock || '';
+  document.getElementById('f_sustituto').value = guardado.sustituto || '';
+  document.querySelectorAll('.dec-opt').forEach(o=>o.classList.toggle('sel', o.dataset.val===guardado.decision));
+  renderCamposExtraDecision(guardado.decision);
+
+  document.getElementById('d_auditoria').innerHTML = (r.auditoria||[]).map(a=>`
+    <div class="audit-item"><b>${a.usuario}</b> · ${a.fecha} · ${a.accion}</div>
+  `).join('');
+}
+
+// Selección de radios (Sí/No/etc.)
+document.addEventListener('click', e=>{
+  const opt = e.target.closest('.radio-opt');
+  if(opt){
+    const row = opt.closest('.radio-row');
+    row.querySelectorAll('.radio-opt').forEach(o=>o.classList.remove('sel'));
+    opt.classList.add('sel');
+  }
+  const dec = e.target.closest('.dec-opt');
+  if(dec){
+    document.querySelectorAll('.dec-opt').forEach(o=>o.classList.remove('sel'));
+    dec.classList.add('sel');
+    renderCamposExtraDecision(dec.dataset.val);
+  }
+});
+
+const CAMPOS_EXTRA = {
+  aprobar: `<div class="field-g"><label>N° orden de reposición</label><input type="text" id="ex_orden"></div>
+             <div class="field-g"><label>Fecha compromiso entrega</label><input type="date" id="ex_fecha"></div>`,
+  aprobar_devolucion: `<div class="field-g"><label>N° orden de reposición</label><input type="text" id="ex_orden"></div>
+             <div class="field-g"><label>Fecha compromiso entrega</label><input type="date" id="ex_fecha"></div>
+             <div class="field-g"><label>Nota para Almacén</label><textarea id="ex_nota"></textarea></div>`,
+  sustento: `<div class="field-g"><label>¿Qué documento se necesita?</label><input type="text" id="ex_doc" placeholder="Ej: foto del EPP dañado, boleta, etc."></div>`,
+  compromiso: `<div class="field-g"><label>Tipo de compromiso</label><input type="text" id="ex_tipo"></div>
+             <div class="field-g"><label>Fecha límite</label><input type="date" id="ex_fecha"></div>
+             <div class="field-g"><label>Responsable</label><input type="text" id="ex_resp"></div>`,
+  hse: `<div class="field-g"><label>Instrucciones para HSE</label><textarea id="ex_instr"></textarea></div>`,
+  rrhh: `<div class="field-g"><label>Instrucciones para RRHH</label><textarea id="ex_instr"></textarea></div>`,
+  hse_rrhh: `<div class="field-g"><label>Instrucciones para HSE</label><textarea id="ex_instrHse"></textarea></div>
+             <div class="field-g"><label>Instrucciones para RRHH</label><textarea id="ex_instrRrhh"></textarea></div>`,
+  rechazar: `<div class="field-g"><label>Justificación del rechazo (obligatorio)</label><textarea id="ex_just"></textarea></div>`,
+};
+function renderCamposExtraDecision(val){
+  document.getElementById('decisionCamposExtra').innerHTML = CAMPOS_EXTRA[val] || '';
+}
+
+function leerFormularioActual(){
+  const decisionEl = document.querySelector('.dec-opt.sel');
+  return {
+    recurrente: document.querySelector('[data-group="recurrente"] .sel')?.dataset.val,
+    consistente: document.querySelector('[data-group="consistente"] .sel')?.dataset.val,
+    haystock: document.querySelector('[data-group="haystock"] .sel')?.dataset.val,
+    tiponc: document.getElementById('f_tiponc').value,
+    obsnc: document.getElementById('f_obsnc').value,
+    stock: document.getElementById('f_stock').value,
+    sustituto: document.getElementById('f_sustituto').value,
+    decision: decisionEl?.dataset.val || null,
+  };
+}
+
+function guardarEppActual(){
+  const c = REPORTE_ACTIVO.correlativo;
+  VALIDACIONES[c][EPP_ACTIVO_IDX] = leerFormularioActual();
+  renderTabsEpp();
+  alert('Validación del EPP guardada localmente. Se enviará a SharePoint (Validaciones_EPP) al presionar "Registrar".');
+}
+
+function siguienteEpp(){
+  guardarEppActual();
+  const n = REPORTE_ACTIVO.epps.length;
+  EPP_ACTIVO_IDX = (EPP_ACTIVO_IDX+1) % n;
+  renderTabsEpp(); renderDetalle();
+}
+
+function guardarBorrador(){
+  guardarEppActual();
+  alert('Borrador guardado localmente en esta sesión.');
+}
+
+async function registrarTodo(){
+  guardarEppActual();
+  const c = REPORTE_ACTIVO.correlativo;
+  const payload = { correlativo:c, validadoPor:SESION?.nombre, dni:SESION?.dni, items:VALIDACIONES[c] };
+
+  if(CONFIG.URL_SAVE_VALIDACION.startsWith('PEGAR_AQUI')){
+    alert('El flujo APROB_EPP_M2_GEN_SaveValidacion aún no está configurado. Payload listo para enviar (revisa la consola).');
+    console.log('Payload SaveValidacion:', payload);
+    return;
+  }
+  try{
+    await fetch(CONFIG.URL_SAVE_VALIDACION, {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
+    });
+    alert('Validación registrada correctamente.');
+    volverBandeja();
+  }catch(e){
+    alert('No se pudo registrar. Verifica la conexión.');
+    console.error(e);
+  }
+}
+
+/* ============================================================
+   DATOS DE EJEMPLO — solo se usan si URL_GET_INCIDENCIAS no
+   está configurada, para poder revisar el diseño de la bandeja.
+   ============================================================ */
+const REPORTES_MOCK = [
+  { correlativo:'INC-260702-351245', fecha:'02/07/2026', hora:'19:43', area:'OBRAS',
+    colaborador:'HUAITA MARIN JOSELI', dni:'25709149', cargo:'Técnico MT',
+    epps:[{nombre:'Casco',color:'azul'},{nombre:'Guante',color:'verde'},{nombre:'Manta',color:'naranja'}],
+    estadoKey:'revision', estadoLabel:'En revisión 2/5',
+    actividad:'Mantenimiento preventivo de línea', ticket:'OT-2026-4821',
+    geo:'Av. Argentina 2698 - Callao - Lima', detalle:'El colaborador reporta desgaste del casco y guantes por uso prolongado en campo.',
+    fotos:[1,2], contratoActivo:true, fechaIngreso:'15/03/2023', tiempoEmpresa:'3 años 4 meses',
+    historial:[
+      {sistema:'SAP',fecha:'15/05/2025',doc:'SAP-20250515-001',cantidad:'1 und.',dias:'412 días',alerta:true},
+      {sistema:'DSIGE',fecha:'20/05/2025',doc:'DSG-2025-112',cantidad:'1 und.',dias:'407 días',alerta:false},
+    ],
+    indicadores:[{tipo:'warn',texto:'🟡 Próximo a vencer (>80% de vida útil consumida)'}],
+    devolucion:{tipo:'warn',texto:'⚠️ Devolución no registrada aún'},
+    opTipo:'Cambio por deterioro', opDecision:'Requiere cambio', opSolicitud:'SOL-2026-089',
+    opComentario:'Colaborador presenta evidencia fotográfica del desgaste.',
+    auditoria:[{usuario:'Sistema', fecha:'02/07/2026 19:43', accion:'Reporte creado desde Módulo 1'}] },
+
+  { correlativo:'INC-260702-281045', fecha:'02/07/2026', hora:'14:10', area:'EMERGENCIA BT',
+    colaborador:'MANTILLA COTRINA BERNARDO', dni:'40123456', cargo:'Electricista',
+    epps:[{nombre:'Careta',color:'rojo'},{nombre:'Polo',color:'azul'},{nombre:'Funda',color:'verde'}],
+    estadoKey:'nuevo', estadoLabel:'Nuevo',
+    actividad:'Atención de emergencia BT', ticket:'OT-2026-4790',
+    geo:'Jr. Lima 450 - San Miguel - Lima', detalle:'Careta facial dañada por chispa eléctrica durante intervención.',
+    fotos:[1], contratoActivo:true, fechaIngreso:'02/01/2021', tiempoEmpresa:'5 años 6 meses',
+    historial:[{sistema:'SAP',fecha:'10/01/2025',doc:'SAP-20250110-003',cantidad:'1 und.',dias:'568 días',alerta:false}],
+    indicadores:[{tipo:'danger',texto:'🔴 Vida útil vencida — posible uso indebido'}],
+    devolucion:{tipo:'muted',texto:'➖ No aplica devolución'},
+    opTipo:'', opDecision:'', opSolicitud:'', opComentario:'',
+    auditoria:[{usuario:'Sistema', fecha:'02/07/2026 14:10', accion:'Reporte creado desde Módulo 1'}] },
+
+  { correlativo:'INC-260701-143045', fecha:'01/07/2026', hora:'09:20', area:'MANTENIMIENTO PREVENTIVO',
+    colaborador:'DELGADO QUINTANA OSCAR', dni:'18456789', cargo:'Técnico Preventivo',
+    epps:[{nombre:'Casco',color:'azul'},{nombre:'Lente',color:'verde'},{nombre:'Camisa',color:'naranja'}],
+    estadoKey:'aprobado', estadoLabel:'Aprobado 5/5',
+    actividad:'Ronda de mantenimiento preventivo', ticket:'OT-2026-4650',
+    geo:'Av. Faucett 1200 - Callao - Lima', detalle:'Cambio programado por vencimiento de vida útil.',
+    fotos:[1,2,3], contratoActivo:true, fechaIngreso:'10/06/2019', tiempoEmpresa:'7 años 1 mes',
+    historial:[], indicadores:[{tipo:'ok',texto:'🟢 EPP dentro de vida útil — sin alerta'}],
+    devolucion:{tipo:'ok',texto:'✅ Devolución registrada — Buen estado'},
+    opTipo:'Cambio por vencimiento', opDecision:'Requiere cambio', opSolicitud:'SOL-2026-071',
+    opComentario:'Vencimiento según cronograma.',
+    auditoria:[{usuario:'DURAN PAREDES WILMER', fecha:'01/07/2026 11:00', accion:'Reporte aprobado'}] },
+
+  { correlativo:'INC-260630-095545', fecha:'30/06/2026', hora:'08:05', area:'CONEXIONES',
+    colaborador:'ESTOFANERO PUMA RAUL', dni:'71234567', cargo:'Ayudante de Conexiones',
+    epps:[{nombre:'Polo',color:'azul'},{nombre:'Pantalón',color:'verde'},{nombre:'Chaleco',color:'rojo'}],
+    estadoKey:'sustento', estadoLabel:'Pend. sustento',
+    actividad:'Instalación de conexión nueva', ticket:'OT-2026-4590',
+    geo:'Av. Colonial 900 - Lima - Lima', detalle:'Prenda con manchas de aceite, requiere sustento fotográfico adicional.',
+    fotos:[1], contratoActivo:false, contratoEstado:'CESADO', fechaIngreso:'05/02/2022', tiempoEmpresa:'—',
+    historial:[], indicadores:[{tipo:'danger',texto:'⚠️ Solicitud recurrente (2da vez en 12 meses)'}],
+    devolucion:{tipo:'warn',texto:'⚠️ Devolución no registrada aún'},
+    opTipo:'Cambio por observación externa', opDecision:'Requiere cambio sin stock', opSolicitud:'SOL-2026-060',
+    opComentario:'Pendiente definir si corresponde por cese de colaborador.',
+    auditoria:[] },
+];
+</script>
+</body>
+</html>
